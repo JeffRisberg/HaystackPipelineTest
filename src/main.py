@@ -66,15 +66,19 @@ document_store_4.write_documents(dicts_4)
 
 
 documents = retriever_1.retrieve(query="Alpha Beta Gamma Delta")
+assert(len(documents) == 2)
 for doc in documents:
   print(doc)
 documents = retriever_2.retrieve(query="Alpha Beta Gamma Delta")
+assert(len(documents) == 2)
 for doc in documents:
   print(doc)
 documents = retriever_3.retrieve(query="Alpha Beta Gamma Delta")
+assert(len(documents) == 2)
 for doc in documents:
   print(doc)
 documents = retriever_4.retrieve(query="Alpha Beta Gamma Delta")
+assert(len(documents) == 2)
 for doc in documents:
   print(doc)
 
@@ -92,6 +96,7 @@ pipeline.add_node(component=JoinDocuments(weights=[0.5, 0.5], join_mode='merge')
 res = pipeline.run(query="Alpha Beta Gamma Delta")
 print(res)
 documents = res['documents']
+assert(len(documents) == 8)
 for doc in documents:
   print(doc)
 
