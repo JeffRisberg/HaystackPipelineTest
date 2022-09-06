@@ -84,9 +84,9 @@ pipeline.add_node(component=retriever_1, name="Retriever1", inputs=["Query"])
 pipeline.add_node(component=retriever_2, name="Retriever2", inputs=["Query"])
 pipeline.add_node(component=retriever_3, name="Retriever3", inputs=["Query"])
 pipeline.add_node(component=retriever_4, name="Retriever4", inputs=["Query"])
-pipeline.add_node(component=JoinDocuments(join_mode='merge'), name="Join12", inputs=["Retriever1", "Retriever2"])
-pipeline.add_node(component=JoinDocuments(join_mode='merge'), name="Join34", inputs=["Retriever3", "Retriever4"])
-pipeline.add_node(component=JoinDocuments(join_mode='merge'), name="JoinFinal", inputs=["Join12", "Join34"])
+pipeline.add_node(component=JoinDocuments(weights=[0.5, 0.5], join_mode='merge'), name="Join12", inputs=["Retriever1", "Retriever2"])
+pipeline.add_node(component=JoinDocuments(weights=[0.5, 0.5], join_mode='merge'), name="Join34", inputs=["Retriever3", "Retriever4"])
+pipeline.add_node(component=JoinDocuments(weights=[0.5, 0.5], join_mode='merge'), name="JoinFinal", inputs=["Join12", "Join34"])
 
 
 res = pipeline.run(query="Alpha Beta Gamma Delta")
