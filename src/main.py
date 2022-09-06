@@ -1,57 +1,67 @@
-import os
-from flask import Flask, request, jsonify
-from flask_cors import CORS
+from haystack import Pipeline, JoinDocuments
+from haystack.document_stores import InMemoryDocumentStore
+from haystack.nodes import FilterRetriever
 
-from prepare_haystack_4_pipeline import build_pipeline, clean_text
+document_store_1 = InMemoryDocumentStore()
+retriever_1 = FilterRetriever(document_store_1, scale_score = True)
+# add content to retriever
+dicts_1 = [
+  {
+    'content': "Alpha",
+    'score': 0.5
+  }
+]
+document_store_1.write_documents(dicts_1)
 
-os.environ['KMP_DUPLICATE_LIB_OK'] = 'True'
-os.environ['TOKENIZERS_PARALLELISM'] = 'false'
-
-
-# Define the app
-app = Flask(__name__)
-# Load configs
-app.config.from_object('config')
-# Set CORS policies
-CORS(app)
-
-pipeline = build_pipeline()
-
-
-def get_results(input):
-  top_k = app.config['TOP_K']
-  records = pipeline.run(
-      query = clean_text(input),
-      params = {
-        "BMRetriever": {"top_k": top_k},
-        "EMRetriever": {"top_k": top_k}
-      })
-  return records
+document_store_2 = InMemoryDocumentStore()
+retriever_2 = FilterRetriever(document_store_2, scale_score = True)
+# add content to retriever
+dicts_2 = [
+  {
+    'content': "Beta",
+    'score': 0.5
+  }
+]
+document_store_2.write_documents(dicts_2)
 
 
-@app.route("/query", methods=["GET"])
-def qa():
-  records = {'documents': []}
+document_store_3 = InMemoryDocumentStore()
+retriever_3 = FilterRetriever(document_store_3, scale_score = True)
+# add content to retriever
+dicts_3 = [
+  {
+    'content': "Gamma",
+  }
+]
+document_store_3.write_documents(dicts_3)
 
-  if request.args.get("query"):
-    query = request.args.get("query")
 
-    records = pipeline.run(
-        query = clean_text(query),
-        params = {
-          "BMRetriever": {"top_k": 3},
-          "ESRetriever": {"top_k": 3}
-        })
-  else:
-    return {"error": "Couldn't process your request"}, 422
+document_store_4 = InMemoryDocumentStore()
+retriever_4 = FilterRetriever(document_store_4, scale_score = True)
+# add content to retriever
+dicts_4 = [
+  {
+    'content': "Delta",
+  }
+]
+document_store_4.write_documents(dicts_4)
 
-  result = [{
-    'title': r.meta['title'],
-    'subject': r.meta['subject'],
-    'score': r.score}
-    for r in records['documents']]
-  return jsonify(result)
 
-if __name__ == '__main__':
-  app.run(debug=True, use_reloader=False, host="0.0.0.0", port=5000)
+documents = retriever_1.retrieve(query="Alpha Beta Gamma Delta")
+print(documents)
+for doc in documents:
+  print(doc)
+
+
+pipeline = Pipeline()
+pipeline.add_node(component=retriever_1, name="Retriever1", inputs=["Query"])
+pipeline.add_node(component=retriever_2, name="Retriever2", inputs=["Query"])
+pipeline.add_node(component=JoinDocuments(join_mode="concatenate"), name="Join12", inputs=["Retriever1", "Retriever2"])
+
+
+res = pipeline.run(query="Alpha Beta Gamma Delta")
+print(res)
+documents = res['documents']
+for doc in documents:
+  print(doc)
 
